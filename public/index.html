@@ -1,0 +1,61 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TimetableForge | University Scheduler</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="app">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-icon">T</div>
+            <div>
+                <h2>TimetableForge</h2>
+                <small>UNIVERSITY SCHEDULER</small>
+            </div>
+        </div>
+
+        <p class="nav-label">WORKSPACE</p>
+        <nav>
+            <button class="nav-item active" data-page="dashboard">▦ Dashboard</button>
+            <button class="nav-item" data-page="faculty">♙ Faculty</button>
+            <button class="nav-item" data-page="subjects">▤ Subjects</button>
+            <button class="nav-item" data-page="sections">▣ Sections</button>
+            <button class="nav-item" data-page="rooms">⌂ Rooms</button>
+            <button class="nav-item" data-page="assignments">⇄ Assignments</button>
+            <button class="nav-item" data-page="users">♙ User Management</button>
+            <button class="nav-item" data-page="timetable">▦ Timetable</button>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <span class="status-dot"></span>
+            System Operational
+        </div>
+    </aside>
+
+    <main class="main">
+        <header class="topbar">
+            <div>
+                <h2 id="page-title">Dashboard</h2>
+                <p>University Scheduling Management System</p>
+            </div>
+            <div class="admin">
+                <div class="avatar">A</div>
+                <div>
+                    <strong>Administrator</strong>
+                    <small>System Admin</small>
+                </div>
+            </div>
+        </header>
+
+        <section id="content"></section>
+    </main>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>

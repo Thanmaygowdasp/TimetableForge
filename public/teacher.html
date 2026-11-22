@@ -1,0 +1,56 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TimetableForge | Teacher</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="app">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-icon">T</div>
+            <div>
+                <h2>TimetableForge</h2>
+                <small>TEACHER PORTAL</small>
+            </div>
+        </div>
+
+        <p class="nav-label">WORKSPACE</p>
+        <nav>
+            <button class="nav-item active">▦ My Timetable</button>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <span class="status-dot"></span>
+            System Operational
+        </div>
+    </aside>
+
+    <main class="main">
+        <header class="topbar">
+            <div>
+                <h2>Teacher Dashboard</h2>
+                <p>Your assigned teaching schedule</p>
+            </div>
+
+            <div class="admin">
+                <div class="avatar">T</div>
+                <div>
+                    <strong id="teacherName">Teacher</strong>
+                    <small>Faculty Member</small>
+                </div>
+                <button id="logoutBtn">Logout</button>
+            </div>
+        </header>
+
+        <section id="teacherContent"></section>
+    </main>
+</div>
+
+<script src="js/teacher.js"></script>
+</body>
+</html>

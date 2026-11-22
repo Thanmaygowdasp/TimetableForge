@@ -1,0 +1,56 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TimetableForge | Student</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="app">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-icon">T</div>
+            <div>
+                <h2>TimetableForge</h2>
+                <small>STUDENT PORTAL</small>
+            </div>
+        </div>
+
+        <p class="nav-label">WORKSPACE</p>
+        <nav>
+            <button class="nav-item active">▦ My Timetable</button>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <span class="status-dot"></span>
+            System Operational
+        </div>
+    </aside>
+
+    <main class="main">
+        <header class="topbar">
+            <div>
+                <h2>Student Dashboard</h2>
+                <p>Your section's weekly schedule</p>
+            </div>
+
+            <div class="admin">
+                <div class="avatar">S</div>
+                <div>
+                    <strong id="studentName">Student</strong>
+                    <small>Student Portal</small>
+                </div>
+                <button id="logoutBtn">Logout</button>
+            </div>
+        </header>
+
+        <section id="studentContent"></section>
+    </main>
+</div>
+
+<script src="js/student.js"></script>
+</body>
+</html>
