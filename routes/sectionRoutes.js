@@ -31,20 +31,71 @@ router.post("/", async (req, res) => {
     }
 });
 
+// Delete section and related records
 router.delete("/:id", async (req, res) => {
+    const sectionId = req.params.id;
+    let connection;
+
     try {
-        const [result] = await db.query(
-            "DELETE FROM sections WHERE id = ?", [req.params.id]
+        connection = await db.getConnection();
+        await connection.beginTransaction();
+
+        // Check whether section exists
+        const [section] = await connection.query(
+            "SELECT id FROM sections WHERE id = ?",
+            [sectionId]
         );
 
-        if (!result.affectedRows) {
-            return res.status(404).json({ message: "Section not found" });
+        if (section.length === 0) {
+            await connection.rollback();
+            return res.status(404).json({
+                message: "Section not found"
+            });
         }
 
-        res.json({ message: "Section deleted" });
+        // Delete timetable entries
+        await connection.query(
+            "DELETE FROM timetables WHERE section_id = ?",
+            [sectionId]
+        );
+
+        // Delete section-subject assignments
+        await connection.query(
+            "DELETE FROM section_subjects WHERE section_id = ?",
+            [sectionId]
+        );
+
+        // Delete linked student accounts
+        await connection.query(
+            "DELETE FROM users WHERE section_id = ? AND role = 'STUDENT'",
+            [sectionId]
+        );
+
+        // Delete section
+        await connection.query(
+            "DELETE FROM sections WHERE id = ?",
+            [sectionId]
+        );
+
+        await connection.commit();
+
+        res.json({
+            message: "Section and related records deleted successfully"
+        });
+
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        if (connection) {
+            await connection.rollback();
+        }
+
+        res.status(500).json({
+            error: error.message
+        });
+
+    } finally {
+        if (connection) {
+            connection.release();
+        }
     }
 });
-
 module.exports = router;
