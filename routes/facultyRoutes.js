@@ -58,38 +58,74 @@ router.put("/:id", async (req, res) => {
 
 // Delete faculty
 router.delete("/:id", async (req, res) => {
+    const facultyId = req.params.id;
+    let connection;
+
     try {
-        const facultyId = req.params.id;
+        connection = await db.getConnection();
+        await connection.beginTransaction();
 
-        // Check existing subject assignments
-        const [assignments] = await db.query(
-            "SELECT COUNT(*) AS total FROM faculty_subjects WHERE faculty_id = ?",
+        // Check whether faculty exists
+        const [faculty] = await connection.query(
+            "SELECT id FROM faculty WHERE id = ?",
             [facultyId]
         );
 
-        if (assignments[0].total > 0) {
-            return res.status(409).json({
-                message: "Cannot delete faculty. Remove their subject assignments first."
-            });
-        }
-
-        // Delete faculty
-        const [result] = await db.query(
-            "DELETE FROM faculty WHERE id = ?",
-            [facultyId]
-        );
-
-        if (!result.affectedRows) {
+        if (faculty.length === 0) {
+            await connection.rollback();
             return res.status(404).json({
                 message: "Faculty not found"
             });
         }
 
-        res.json({ message: "Faculty deleted successfully" });
+        // Delete related timetable entries
+        await connection.query(
+            "DELETE FROM timetables WHERE faculty_id = ?",
+            [facultyId]
+        );
+
+        // Delete section-subject assignments
+        await connection.query(
+            "DELETE FROM section_subjects WHERE faculty_id = ?",
+            [facultyId]
+        );
+
+        // Delete faculty-subject assignments
+        await connection.query(
+            "DELETE FROM faculty_subjects WHERE faculty_id = ?",
+            [facultyId]
+        );
+        // Delete linked teacher login account
+        await connection.query(
+            "DELETE FROM users WHERE faculty_id = ? AND role = 'TEACHER'",
+            [facultyId]
+        );
+
+        // Delete faculty
+        await connection.query(
+            "DELETE FROM faculty WHERE id = ?",
+            [facultyId]
+        );
+
+        await connection.commit();
+
+        res.json({
+            message: "Faculty and related assignments deleted successfully"
+        });
 
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        if (connection) {
+            await connection.rollback();
+        }
+
+        res.status(500).json({
+            error: error.message
+        });
+
+    } finally {
+        if (connection) {
+            connection.release();
+        }
     }
 });
-
 module.exports = router;
