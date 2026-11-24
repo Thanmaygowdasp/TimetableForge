@@ -71,7 +71,8 @@ router.post("/generate", async (req, res) => {
                 message: "Add subjects, assignments, rooms and time slots first."
             });
         }
-
+        console.log("ROOMS:", rooms);
+        console.log("TASKS:", tasks);
         // Generate schedule
         const result = generateTimetable(tasks, slots, rooms);
 

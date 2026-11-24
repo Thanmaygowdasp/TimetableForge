@@ -6,49 +6,90 @@ const db = require("../db");
 
 const router = express.Router();
 
-// Create first admin account (only when users table is empty)
-router.post("", async (req, res) => {
+
+// ==========================================
+// ADMIN REGISTRATION WITH SECRET KEY
+// ==========================================
+
+router.post("/register-admin", async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const {
+            name,
+            email,
+            password,
+            secretKey
+        } = req.body;
 
-        const [existingUsers] = await db.query(
-            "SELECT id FROM users LIMIT 1"
-        );
-
-        if (existingUsers.length > 0) {
-            return res.status(403).json({
-                message: "Admin setup is already completed."
+        if (!name || !email || !password || !secretKey) {
+            return res.status(400).json({
+                message: "All fields are required."
             });
         }
 
-        if (!name || !email || !password || password.length < 8) {
+        if (!process.env.ADMIN_REGISTRATION_KEY) {
+            return res.status(500).json({
+                message: "Admin registration is not configured."
+            });
+        }
+
+        if (secretKey !== process.env.ADMIN_REGISTRATION_KEY) {
+            return res.status(403).json({
+                message: "Invalid administrator registration key."
+            });
+        }
+
+        if (password.length < 8) {
             return res.status(400).json({
-                message: "Provide name, email and a password of at least 8 characters."
+                message: "Password must contain at least 8 characters."
+            });
+        }
+
+        const cleanEmail = email.trim().toLowerCase();
+
+        const [existingUsers] = await db.query(
+            "SELECT id FROM users WHERE email = ?",
+            [cleanEmail]
+        );
+
+        if (existingUsers.length > 0) {
+            return res.status(409).json({
+                message: "Email already exists."
             });
         }
 
         const passwordHash = await bcrypt.hash(password, 12);
 
         await db.query(
-            `INSERT INTO users (name, email, password_hash, role)
-             VALUES (?, ?, ?, 'ADMIN')`,
-            [name, email, passwordHash]
+            `INSERT INTO users
+            (name, email, password_hash, role)
+            VALUES (?, ?, ?, 'ADMIN')`,
+            [name.trim(), cleanEmail, passwordHash]
         );
 
         res.status(201).json({
-            message: "First admin account created successfully."
+            message: "Administrator account created successfully."
         });
 
     } catch (error) {
-        console.error("ADMIN SETUP ERROR:", error);
+        console.error("ADMIN REGISTRATION ERROR:", error);
+
+        if (error.code === "ER_DUP_ENTRY") {
+            return res.status(409).json({
+                message: "Email already exists."
+            });
+        }
+
         res.status(500).json({
-            message: "Admin setup failed."
+            message: "Admin registration failed."
         });
     }
 });
 
 
-// Login API
+// ==========================================
+// LOGIN API
+// ==========================================
+
 router.post("/login", async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -59,9 +100,11 @@ router.post("/login", async (req, res) => {
             });
         }
 
+        const cleanEmail = email.trim().toLowerCase();
+
         const [users] = await db.query(
             "SELECT * FROM users WHERE email = ?",
-            [email]
+            [cleanEmail]
         );
 
         if (users.length === 0) {
@@ -109,6 +152,7 @@ router.post("/login", async (req, res) => {
 
     } catch (error) {
         console.error("LOGIN ERROR:", error);
+
         res.status(500).json({
             message: "Login failed."
         });

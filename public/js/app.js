@@ -66,8 +66,8 @@ function formPage(title, description, fields, endpoint, reloadPage) {
                             ${field.options ? `
                                 <select name="${field.name}" ${field.required === false ? "" : "required"}>
                                     ${field.options.map(option =>
-                                        `<option value="${option.value}">${option.label}</option>`
-                                    ).join("")}
+        `<option value="${option.value}">${option.label}</option>`
+    ).join("")}
                                 </select>
                             ` : `
                                 <input
@@ -491,11 +491,11 @@ async function loadSubjects() {
                     </thead>
                     <tbody id="subject-table">
                         ${data.map(s => {
-                            const isLab = s.requires_lab === true ||
-                                s.requires_lab === 1 ||
-                                s.requires_lab === "1";
+        const isLab = s.requires_lab === true ||
+            s.requires_lab === 1 ||
+            s.requires_lab === "1";
 
-                            return `
+        return `
                                 <tr>
                                     <td><strong>${escapeHTML(s.name)}</strong></td>
                                     <td>${escapeHTML(s.code)}</td>
@@ -513,7 +513,7 @@ async function loadSubjects() {
                                     </td>
                                 </tr>
                             `;
-                        }).join("")}
+    }).join("")}
                     </tbody>
                 </table>
             </div>
@@ -734,6 +734,7 @@ async function loadSections() {
 
 
 
+
 async function loadRooms() {
     const data = await request("/rooms");
 
@@ -747,29 +748,32 @@ async function loadRooms() {
     content.innerHTML = `
         <div class="page-heading">
             <h2>Room Management</h2>
-            <p>Manage classrooms, laboratories and room capacities.</p>
+            <p>Manage classrooms, laboratories, capacities and equipment.</p>
         </div>
 
         <div class="stats">
             <div class="stat-card">
                 <p>Total Rooms</p>
                 <h2>${data.length}</h2>
-                <small style="color:#858ba3">Registered facilities</small>
+                <small>Registered facilities</small>
             </div>
+
             <div class="stat-card">
                 <p>Classrooms</p>
                 <h2>${classrooms}</h2>
-                <small style="color:#858ba3">Theory teaching rooms</small>
+                <small>Theory teaching rooms</small>
             </div>
+
             <div class="stat-card">
                 <p>Laboratories</p>
                 <h2>${labs}</h2>
-                <small style="color:#858ba3">Practical learning spaces</small>
+                <small>Practical learning spaces</small>
             </div>
+
             <div class="stat-card">
                 <p>Total Capacity</p>
                 <h2>${totalCapacity}</h2>
-                <small style="color:#858ba3">Combined seating capacity</small>
+                <small>Combined seating capacity</small>
             </div>
         </div>
 
@@ -780,9 +784,11 @@ async function loadRooms() {
             </p>
 
             <form id="room-form" class="form-grid">
+
                 <div class="form-group">
                     <label>Room Number</label>
-                    <input name="room_number" placeholder="e.g. CR101" required>
+                    <input name="room_number"
+                        placeholder="e.g. CR101" required>
                 </div>
 
                 <div class="form-group">
@@ -795,11 +801,24 @@ async function loadRooms() {
 
                 <div class="form-group">
                     <label>Seating Capacity</label>
-                    <input name="capacity" type="number" min="1"
+                    <input name="capacity"
+                        type="number" min="1"
                         placeholder="Enter capacity" required>
                 </div>
 
-                <button class="btn" type="submit">+ Add Room</button>
+                <div class="form-group" id="equipment-group"
+                    style="display:none">
+
+                    <label>Number of Equipments</label>
+                    <input name="equipment_count"
+                        type="number" min="0"
+                        placeholder="Enter equipment count"
+                        value="0">
+                </div>
+
+                <button class="btn" type="submit">
+                    + Add Room
+                </button>
             </form>
         </div>
 
@@ -811,7 +830,9 @@ async function loadRooms() {
                         All registered classrooms and laboratories
                     </p>
                 </div>
-                <input id="room-search" placeholder="Search rooms..."
+
+                <input id="room-search"
+                    placeholder="Search rooms..."
                     style="max-width:230px">
             </div>
 
@@ -822,19 +843,34 @@ async function loadRooms() {
                             <th>Room Number</th>
                             <th>Room Type</th>
                             <th>Capacity</th>
+                            <th>Equipment</th>
                             <th>Action</th>
                         </tr>
                     </thead>
+
                     <tbody id="room-table">
                         ${data.map(r => `
                             <tr>
-                                <td><strong>${escapeHTML(r.room_number)}</strong></td>
+                                <td>
+                                    <strong>${escapeHTML(r.room_number)}</strong>
+                                </td>
+
                                 <td>
                                     <span class="badge">
-                                        ${r.room_type === "LAB" ? "Laboratory" : "Classroom"}
+                                        ${r.room_type === "LAB"
+            ? "Laboratory"
+            : "Classroom"}
                                     </span>
                                 </td>
+
                                 <td>${escapeHTML(r.capacity)} seats</td>
+
+                                <td>
+                                    ${r.room_type === "LAB"
+            ? `${Number(r.equipment_count || 0)} equipments`
+            : "-"}
+                                </td>
+
                                 <td>
                                     <button class="btn btn-danger"
                                         data-delete="${r.id}">
@@ -842,18 +878,47 @@ async function loadRooms() {
                                     </button>
                                 </td>
                             </tr>
-                        `).join("")}
+                        `).join("") || `
+                            <tr>
+                                <td colspan="5">No rooms added yet.</td>
+                            </tr>
+                        `}
                     </tbody>
                 </table>
             </div>
         </div>
     `;
 
+    // Show equipment field only for laboratories
+    const roomTypeSelect = document.querySelector(
+        '#room-form [name="room_type"]'
+    );
+
+    const equipmentGroup = document.getElementById("equipment-group");
+
+    const equipmentInput = document.querySelector(
+        '#room-form [name="equipment_count"]'
+    );
+
+    roomTypeSelect.addEventListener("change", () => {
+        const isLab = roomTypeSelect.value === "LAB";
+
+        equipmentGroup.style.display = isLab ? "block" : "none";
+        equipmentInput.required = isLab;
+
+        if (!isLab) {
+            equipmentInput.value = 0;
+        }
+    });
+
+    // Add room
     document.getElementById("room-form").addEventListener("submit", async (e) => {
         e.preventDefault();
 
         const formData = Object.fromEntries(new FormData(e.target));
+
         formData.capacity = Number(formData.capacity);
+        formData.equipment_count = Number(formData.equipment_count || 0);
 
         try {
             await request("/rooms", {
@@ -861,15 +926,20 @@ async function loadRooms() {
                 body: JSON.stringify(formData)
             });
 
+            alert("Room added successfully!");
+
             await loadRooms();
             loadDashboardStats();
+
         } catch (error) {
             alert(error.message);
         }
     });
 
+    // Delete room
     document.getElementById("room-table").addEventListener("click", async (e) => {
         const button = e.target.closest("[data-delete]");
+
         if (!button) return;
 
         if (!confirm("Are you sure you want to delete this room?")) return;
@@ -881,11 +951,13 @@ async function loadRooms() {
 
             await loadRooms();
             loadDashboardStats();
+
         } catch (error) {
             alert(error.message);
         }
     });
 
+    // Search rooms
     document.getElementById("room-search").addEventListener("input", (e) => {
         const search = e.target.value.toLowerCase();
 
@@ -896,6 +968,7 @@ async function loadRooms() {
         });
     });
 }
+
 
 
 
@@ -1165,9 +1238,16 @@ async function loadTimetable() {
                     </p>
                 </div>
 
-                <button class="btn" id="generate-btn">
-                    Generate Timetable
-                </button>
+                <div style="display:flex;gap:10px;flex-wrap:wrap">
+                    <button class="btn" id="generate-btn">
+                        Generate Timetable
+                    </button>
+
+                    <button class="btn" id="download-pdf-btn"
+                        ${rows.length === 0 ? "disabled" : ""}>
+                        Download PDF
+                    </button>
+                </div>
             </div>
 
             ${rows.length === 0 ? `
@@ -1204,12 +1284,12 @@ async function loadTimetable() {
                                     </td>
 
                                     ${days.map(day => {
-                                        const classes = rows.filter(r =>
-                                            r.day === day &&
-                                            r.start_time === slot.start
-                                        );
+        const classes = rows.filter(r =>
+            r.day === day &&
+            r.start_time === slot.start
+        );
 
-                                        return `
+        return `
                                             <td style="min-width:155px;vertical-align:top">
                                                 ${classes.map(r => `
                                                     <div class="class-card" style="
@@ -1238,7 +1318,7 @@ async function loadTimetable() {
                                                 `).join("")}
                                             </td>
                                         `;
-                                    }).join("")}
+    }).join("")}
                                 </tr>
                             `).join("")}
                         </tbody>
@@ -1268,7 +1348,8 @@ async function loadTimetable() {
     `;
 
     document.getElementById("generate-btn").onclick = generateTimetable;
-
+    document.getElementById("download-pdf-btn").onclick =
+    () => downloadTimetablePDF(rows);
     const emptyGenerateBtn = document.getElementById("empty-generate-btn");
 
     if (emptyGenerateBtn) {
@@ -1287,6 +1368,137 @@ async function loadTimetable() {
             showMessage(error.message);
         }
     };
+}
+
+function downloadTimetablePDF(rows) {
+    if (!rows || rows.length === 0) {
+        alert("No timetable available to download.");
+        return;
+    }
+
+    if (!window.jspdf || !window.jspdf.jsPDF) {
+        alert("PDF library not loaded. Please refresh the page.");
+        return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF("landscape", "mm", "a4");
+
+    const days = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday"
+    ];
+
+    const slots = [...new Map(
+        rows.map(r => [
+            `${r.start_time}-${r.end_time}`,
+            {
+                start: r.start_time,
+                end: r.end_time
+            }
+        ])
+    ).values()].sort((a, b) =>
+        a.start.localeCompare(b.start)
+    );
+
+    const body = slots.map(slot => {
+        const row = [
+            `${slot.start}\n${slot.end}`
+        ];
+
+        days.forEach(day => {
+            const classes = rows.filter(r =>
+                r.day === day &&
+                r.start_time === slot.start
+            );
+
+            const cellContent = classes.map(r =>
+                `${r.subject}\n${r.section}\n${r.faculty}\nRoom: ${r.room}`
+            );
+
+            row.push(cellContent.join("\n\n"));
+        });
+
+        return row;
+    });
+
+    // PDF heading
+    doc.setFontSize(18);
+    doc.setFont("helvetica", "bold");
+    doc.text("TIMETABLEFORGE", 14, 14);
+
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    doc.text("Weekly Academic Timetable", 14, 21);
+
+    doc.setFontSize(9);
+    doc.text(
+        `Generated: ${new Date().toLocaleDateString()}`,
+        14,
+        27
+    );
+
+    // Timetable table
+    doc.autoTable({
+        startY: 32,
+        head: [[
+            "Time Slot",
+            ...days
+        ]],
+        body: body,
+        theme: "grid",
+
+        styles: {
+            fontSize: 7,
+            cellPadding: 3,
+            overflow: "linebreak",
+            valign: "top",
+            lineColor: [220, 220, 230],
+            lineWidth: 0.2
+        },
+
+        headStyles: {
+            fillColor: [63, 58, 130],
+            textColor: 255,
+            fontStyle: "bold",
+            halign: "center"
+        },
+
+        columnStyles: {
+            0: {
+                cellWidth: 25,
+                fontStyle: "bold"
+            }
+        },
+
+        margin: {
+            left: 10,
+            right: 10
+        },
+
+        didDrawPage: function () {
+            const pageHeight =
+                doc.internal.pageSize.height;
+
+            doc.setFontSize(8);
+            doc.text(
+                "Generated by TimetableForge",
+                14,
+                pageHeight - 7
+            );
+
+            doc.text(
+                `Page ${doc.internal.getNumberOfPages()}`,
+                doc.internal.pageSize.width - 25,
+                pageHeight - 7
+            );
+        }
+    });
+
+    doc.save("TimetableForge-Weekly-Timetable.pdf");
 }
 
 
@@ -1454,6 +1666,120 @@ async function loadUsers() {
 }
 
 
+async function loadRegistrations() {
+    const requests = await request("/users/registration-requests");
+
+    content.innerHTML = `
+        <div class="page-heading">
+            <h2>Registration Requests</h2>
+            <p>Review and manage student and teacher registration applications.</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <p>Pending Requests</p>
+                <h2>${requests.length}</h2>
+                <small style="color:#858ba3">Awaiting approval</small>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="page-toolbar">
+                <div>
+                    <h3>Pending Applications</h3>
+                    <p style="color:#858ba3;font-size:12px">
+                        Approve or reject account registration requests.
+                    </p>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Department / Section</th>
+                            <th>Requested At</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="registration-table">
+                        ${requests.map(r => `
+                            <tr>
+                                <td><strong>${escapeHTML(r.name)}</strong></td>
+                                <td>${escapeHTML(r.email)}</td>
+                                <td>${escapeHTML(r.role)}</td>
+                                <td>
+                                    ${r.role === "STUDENT"
+            ? `${escapeHTML(r.section_name || "-")} - Semester ${escapeHTML(r.semester ?? "-")}`
+            : escapeHTML(r.department || "-")
+        }
+                                </td>
+                                <td>${escapeHTML(new Date(r.requested_at).toLocaleDateString())}</td>
+                                <td>
+                                    <button class="btn" data-approve="${r.id}">
+                                        Approve
+                                    </button>
+
+                                    <button class="btn btn-danger" data-reject="${r.id}">
+                                        Reject
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join("") || `
+                            <tr>
+                                <td colspan="6" style="text-align:center;padding:25px">
+                                    No pending registration requests.
+                                </td>
+                            </tr>
+                        `}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+
+    document.getElementById("registration-table").addEventListener("click", async (e) => {
+        const approveButton = e.target.closest("[data-approve]");
+        const rejectButton = e.target.closest("[data-reject]");
+
+        if (!approveButton && !rejectButton) return;
+
+        const id = approveButton
+            ? approveButton.dataset.approve
+            : rejectButton.dataset.reject;
+
+        const action = approveButton ? "approve" : "reject";
+
+        if (action === "reject" &&
+            !confirm("Are you sure you want to reject this registration?")) {
+            return;
+        }
+
+        try {
+            const result = await request(
+                `/users/${action}-registration/${id}`,
+                { method: "POST" }
+            );
+
+            showMessage(
+                result.message ||
+                `Registration ${action === "approve" ? "approved" : "rejected"} successfully!`
+            );
+
+            await loadRegistrations();
+
+        } catch (error) {
+            showMessage(error.message);
+        }
+    });
+}
+
+
+
 
 async function loadPage(page) {
     currentPage = page;
@@ -1470,6 +1796,7 @@ async function loadPage(page) {
         rooms: "Rooms",
         assignments: "Assignments",
         users: "User Management",
+        registrations: "Registration Requests",
         timetable: "Timetable"
     };
 
@@ -1484,6 +1811,7 @@ async function loadPage(page) {
             rooms: loadRooms,
             assignments: loadAssignments,
             users: loadUsers,
+            registrations: loadRegistrations,
             timetable: loadTimetable
         };
 

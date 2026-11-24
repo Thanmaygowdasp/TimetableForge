@@ -1,12 +1,13 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TimetableForge | Sign In</title>
+    <title>TimetableForge | Login</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body class="login-body">
 
     <div class="login-container">
@@ -18,38 +19,65 @@
         </div>
 
         <div class="login-card">
-            <div style="margin-bottom:25px">
+
+            <div style="margin-bottom:22px">
                 <p style="color:#635bdb;font-size:11px;font-weight:700;letter-spacing:1.5px;margin-bottom:9px">
                     YOUR ACADEMIC WORKSPACE
                 </p>
-                <h2 style="font-size:25px;margin-bottom:8px">Welcome Back</h2>
-                <p style="color:#858ba3;font-size:13px">
-                    Sign in to manage your university schedule.
+
+                <h2 id="formTitle" style="font-size:25px;margin-bottom:8px">
+                    Welcome Back
+                </h2>
+
+                <p id="formDescription" style="color:#858ba3;font-size:13px">
+                    Select your account type to continue.
                 </p>
             </div>
 
-            <form id="loginForm">
+            <!-- LOGIN TYPE SELECTION -->
+            <div id="loginOptions">
+
+                <button type="button" id="userLoginOption" class="btn" style="width:100%;margin-bottom:12px">
+                    Student / Teacher Login →
+                </button>
+
+                <button type="button" id="adminLoginOption" class="btn" style="width:100%;background:#252b48">
+                    Administrator Login →
+                </button>
+
+            </div>
+
+            <!-- USER ROLE SELECTION -->
+            <div id="roleSelection" style="display:none">
+
+                <div class="form-group">
+                    <label for="userRole">Select Your Role</label>
+
+                    <select id="userRole" required>
+                        <option value="">Choose role</option>
+                        <option value="STUDENT">Student</option>
+                        <option value="TEACHER">Teacher</option>
+                    </select>
+                </div>
+
+                <button type="button" id="continueUserBtn" class="btn" style="width:100%">
+                    Continue →
+                </button>
+
+            </div>
+
+            <!-- LOGIN FORM -->
+            <form id="loginForm" style="display:none">
 
                 <div class="form-group">
                     <label for="email">Email Address</label>
-                    <input
-                        type="email"
-                        id="email"
-                        placeholder="name@university.edu"
-                        autocomplete="username"
-                        required
-                    >
+                    <input type="email" id="email" placeholder="name@university.edu" autocomplete="username" required>
                 </div>
 
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input
-                        type="password"
-                        id="password"
-                        placeholder="Enter your password"
-                        autocomplete="current-password"
-                        required
-                    >
+                    <input type="password" id="password" placeholder="Enter your password"
+                        autocomplete="current-password" required>
                 </div>
 
                 <button type="submit" id="loginBtn" class="btn" style="width:100%;margin-top:12px">
@@ -57,13 +85,145 @@
                 </button>
 
                 <p id="loginMessage" role="alert" style="font-size:12px;margin-top:15px;text-align:center"></p>
+
+                <p id="registerPrompt" style="display:none;text-align:center;font-size:13px;margin-top:18px">
+                    Don't have an account?
+                    <button type="button" id="showRegisterBtn"
+                        style="border:none;background:none;color:#635bdb;font-weight:700;cursor:pointer">
+                        Register here
+                    </button>
+                </p>
+                <p id="adminRegisterPrompt" style="display:none;text-align:center;font-size:13px;margin-top:18px">
+                    New administrator?
+                    <button type="button" id="showAdminRegisterBtn"
+                        style="border:none;background:none;color:#635bdb;font-weight:700;cursor:pointer">
+                        Register here
+                    </button>
+                </p>
+
             </form>
 
+
+            <!-- REGISTRATION FORM -->
+            <form id="registerForm" style="display:none">
+
+                <div class="form-group">
+                    <label for="registerName">Full Name</label>
+                    <input type="text" id="registerName" placeholder="Enter your full name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="registerEmail">Email Address</label>
+                    <input type="email" id="registerEmail" placeholder="name@university.edu" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="registerPassword">Password</label>
+                    <input type="password" id="registerPassword" placeholder="Minimum 8 characters" minlength="8"
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label for="registerConfirmPassword">Confirm Password</label>
+                    <input type="password" id="registerConfirmPassword" placeholder="Confirm your password" required>
+                </div>
+
+                <!-- STUDENT SECTION -->
+                <div class="form-group" id="sectionGroup" style="display:none">
+                    <label for="registerSection">Select Section</label>
+                    <select id="registerSection">
+                        <option value="">Loading sections...</option>
+                    </select>
+                </div>
+
+                <!-- TEACHER DEPARTMENT -->
+                <div class="form-group" id="departmentGroup" style="display:none">
+                    <label for="registerDepartment">Select Department</label>
+                    <select id="registerDepartment">
+                        <option value="">Choose Department</option>
+                        <option value="CSE">Computer Science and Engineering (CSE)</option>
+                        <option value="ISE">Information Science and Engineering (ISE)</option>
+                        <option value="ECE">Electronics and Communication Engineering (ECE)</option>
+                        <option value="EEE">Electrical and Electronics Engineering (EEE)</option>
+                        <option value="ME">Mechanical Engineering (ME)</option>
+                        <option value="CIVIL">Civil Engineering</option>
+                    </select>
+                </div>
+
+                <button type="submit" id="registerBtn" class="btn" style="width:100%;margin-top:12px">
+                    Submit Registration →
+                </button>
+
+                <p id="registerMessage" role="alert" style="font-size:12px;margin-top:15px;text-align:center"></p>
+
+                <p style="text-align:center;font-size:13px;margin-top:15px">
+                    Already have an account?
+                    <button type="button" id="backToLoginBtn"
+                        style="border:none;background:none;color:#635bdb;font-weight:700;cursor:pointer">
+                        Sign in
+                    </button>
+                </p>
+
+            </form>
+            <!-- ADMIN REGISTRATION FORM -->
+            <form id="adminRegisterForm" style="display:none">
+
+                <div class="form-group">
+                    <label for="adminRegisterName">Full Name</label>
+                    <input type="text" id="adminRegisterName" placeholder="Enter your full name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="adminRegisterEmail">Email Address</label>
+                    <input type="email" id="adminRegisterEmail" placeholder="Enter email address" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="adminRegisterPassword">Password</label>
+                    <input type="password" id="adminRegisterPassword" placeholder="Minimum 8 characters" minlength="8"
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label for="adminConfirmPassword">Confirm Password</label>
+                    <input type="password" id="adminConfirmPassword" placeholder="Confirm password" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="adminSecretKey">Administrator Secret Key</label>
+                    <input type="password" id="adminSecretKey" placeholder="Enter secret key" required>
+                </div>
+
+                <button type="submit" id="adminRegisterBtn" class="btn" style="width:100%;margin-top:12px">
+                    Register Administrator →
+                </button>
+
+                <p id="adminRegisterMessage" role="alert" style="font-size:12px;margin-top:15px;text-align:center"></p>
+
+                <p style="text-align:center;font-size:13px;margin-top:15px">
+                    Already registered?
+                    <button type="button" id="adminBackToLoginBtn"
+                        style="border:none;background:none;color:#635bdb;font-weight:700;cursor:pointer">
+                        Sign in
+                    </button>
+                </p>
+
+            </form>
+
+            <!-- BACK BUTTON -->
+            <button type="button" id="backBtn"
+                style="display:none;border:none;background:none;color:#635bdb;font-weight:700;cursor:pointer;margin-top:20px">
+                ← Back
+            </button>
+
             <div style="border-top:1px solid #eeeef4;margin-top:20px;padding-top:18px;text-align:center">
+
                 <p style="font-size:11px;color:#858ba3">
                     Secure access for Administrators, Faculty and Students
                 </p>
+
             </div>
+
         </div>
 
         <footer>© 2026 TimetableForge · University Scheduling System</footer>
@@ -71,5 +231,7 @@
     </div>
 
     <script src="js/login.js"></script>
+
 </body>
+
 </html>

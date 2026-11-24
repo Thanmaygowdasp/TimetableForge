@@ -5,6 +5,7 @@ function generateTimetable(tasks, slots, rooms) {
     const occupiedFaculty = new Set();
     const occupiedSections = new Set();
     const occupiedRooms = new Set();
+    const dailySectionCount = new Map();
 
     let attempts = 0;
     const MAX_ATTEMPTS = 250000;
@@ -37,27 +38,50 @@ function generateTimetable(tasks, slots, rooms) {
 
         const task = classes[index];
 
-        for (const slot of slots) {
+        // Try less-loaded days first
+        const orderedSlots = [...slots].sort((a, b) => {
+            const countA = dailySectionCount.get(
+                `${task.section_id}-${a.day}`
+            ) || 0;
+
+            const countB = dailySectionCount.get(
+                `${task.section_id}-${b.day}`
+            ) || 0;
+
+            return countA - countB;
+        });
+
+        for (const slot of orderedSlots) {
             const facultyKey = `${task.faculty_id}-${slot.id}`;
             const sectionKey = `${task.section_id}-${slot.id}`;
+            const roomKeyPrefix = `${slot.id}`;
 
             if (occupiedFaculty.has(facultyKey)) continue;
             if (occupiedSections.has(sectionKey)) continue;
 
             for (const room of rooms) {
-                const roomKey = `${room.id}-${slot.id}`;
+                const roomKey = `${room.id}-${roomKeyPrefix}`;
 
                 if (occupiedRooms.has(roomKey)) continue;
 
+                // Check seating capacity
                 if (Number(room.capacity) < Number(task.student_count)) {
                     continue;
                 }
 
-                if (
-                    Boolean(Number(task.requires_lab)) &&
-                    room.room_type !== "LAB"
-                ) {
-                    continue;
+                // Lab subjects must use labs with enough equipment
+                if (Boolean(Number(task.requires_lab))) {
+                    if (room.room_type !== "LAB") continue;
+
+                    if (
+                        Number(room.equipment_count || 0) <
+                        Number(task.student_count)
+                    ) {
+                        continue;
+                    }
+                } else {
+                    // Normal subjects must use classrooms
+                    if (room.room_type !== "CLASSROOM") continue;
                 }
 
                 const assignment = {
@@ -68,11 +92,18 @@ function generateTimetable(tasks, slots, rooms) {
                     time_slot_id: slot.id
                 };
 
+                const dayKey = `${task.section_id}-${slot.day}`;
+
                 assignments.push(assignment);
 
                 occupiedFaculty.add(facultyKey);
                 occupiedSections.add(sectionKey);
                 occupiedRooms.add(roomKey);
+
+                dailySectionCount.set(
+                    dayKey,
+                    (dailySectionCount.get(dayKey) || 0) + 1
+                );
 
                 if (solve(index + 1)) {
                     return true;
@@ -83,6 +114,14 @@ function generateTimetable(tasks, slots, rooms) {
                 occupiedFaculty.delete(facultyKey);
                 occupiedSections.delete(sectionKey);
                 occupiedRooms.delete(roomKey);
+
+                const count = dailySectionCount.get(dayKey) - 1;
+
+                if (count === 0) {
+                    dailySectionCount.delete(dayKey);
+                } else {
+                    dailySectionCount.set(dayKey, count);
+                }
             }
         }
 
@@ -96,14 +135,14 @@ function generateTimetable(tasks, slots, rooms) {
             success: false,
             message: attempts > MAX_ATTEMPTS
                 ? "Scheduling search limit reached. Try adding more resources."
-                : "No valid timetable found. Check room capacity, faculty and time slots."
+                : "No valid timetable found. Check room capacity, lab equipment, faculty and time slots."
         };
     }
 
     return {
         success: true,
         assignments,
-        message: "Conflict-free timetable generated successfully."
+        message: "Balanced, conflict-free timetable generated successfully."
     };
 }
 
